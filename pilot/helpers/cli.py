@@ -100,7 +100,11 @@ def execute_command(project, command, timeout=None, force=False):
 
     if not force:
         print(colored(f'\n--------- EXECUTE COMMAND ----------', 'yellow', attrs=['bold']))
-        print(colored(f'Can i execute the command: `') + colored(command, 'yellow', attrs=['bold']) + colored(f'` with {timeout}ms timeout?'))
+        print(
+            colored('Can i execute the command: `')
+            + colored(command, 'yellow', attrs=['bold'])
+            + colored(f'` with {timeout}ms timeout?')
+        )
 
         answer = styled_text(
             project,
@@ -110,7 +114,7 @@ def execute_command(project, command, timeout=None, force=False):
 
     # TODO when a shell built-in commands (like cd or source) is executed, the output is not captured properly - this will need to be changed at some point
     if "cd " in command or "source " in command:
-        command = "bash -c '" + command + "'"
+        command = f"bash -c '{command}'"
 
 
     project.command_runs_count += 1
@@ -133,7 +137,7 @@ def execute_command(project, command, timeout=None, force=False):
     interrupted = False
 
     try:
-        while True and return_value is None:
+        while return_value is None:
             elapsed_time = time.time() - start_time
             if timeout is not None:
                 print(colored(f'\rt: {round(elapsed_time * 1000)}ms : ', 'white', attrs=['bold']), end='', flush=True)
@@ -220,7 +224,17 @@ def build_directory_tree(path, prefix="", ignore=None, is_last=False, files=None
 
     if os.path.isdir(path):
         # It's a directory, add its name to the output and then recurse into it
-        output += prefix + "|-- " + os.path.basename(path) + ((' - ' + files[os.path.basename(path)].description + ' ' if files and os.path.basename(path) in files and add_descriptions else '')) + "/\n"
+        output += (
+            f"{prefix}|-- {os.path.basename(path)}"
+            + (
+                f' - {files[os.path.basename(path)].description} '
+                if files
+                and os.path.basename(path) in files
+                and add_descriptions
+                else ''
+            )
+            + "/\n"
+        )
 
         # List items in the directory
         items = os.listdir(path)
@@ -230,7 +244,17 @@ def build_directory_tree(path, prefix="", ignore=None, is_last=False, files=None
 
     else:
         # It's a file, add its name to the output
-        output += prefix + "|-- " + os.path.basename(path) + ((' - ' + files[os.path.basename(path)].description + ' ' if files and os.path.basename(path) in files and add_descriptions else '')) + "\n"
+        output += (
+            f"{prefix}|-- {os.path.basename(path)}"
+            + (
+                f' - {files[os.path.basename(path)].description} '
+                if files
+                and os.path.basename(path) in files
+                and add_descriptions
+                else ''
+            )
+            + "\n"
+        )
 
     return output
 
@@ -267,7 +291,7 @@ def run_command_until_success(command, timeout, convo, additional_message=None, 
         {'cli_response': cli_response, 'command': command, 'additional_message': additional_message})
 
     if response != 'DONE':
-        print(colored(f'Got incorrect CLI response:', 'red'))
+        print(colored('Got incorrect CLI response:', 'red'))
         print(cli_response)
         print(colored('-------------------', 'red'))
 
@@ -292,7 +316,7 @@ def debug(convo, command=None, user_input=None, issue_description=None):
     convo.save_branch(function_uuid)
     success = False
 
-    for i in range(MAX_COMMAND_DEBUG_TRIES):
+    for _ in range(MAX_COMMAND_DEBUG_TRIES):
         if success:
             break
 

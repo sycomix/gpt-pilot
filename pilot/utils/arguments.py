@@ -77,10 +77,9 @@ def get_email():
         with open(gitconfig_path, 'r') as file:
             content = file.read()
 
-            # Use regex to search for email address
-            email_match = re.search(r'email\s*=\s*([\w\.-]+@[\w\.-]+)', content)
-
-            if email_match:
+            if email_match := re.search(
+                r'email\s*=\s*([\w\.-]+@[\w\.-]+)', content
+            ):
                 return email_match.group(1)
 
     # If not found, return a UUID
@@ -92,5 +91,5 @@ def get_email():
 # TODO can we make BaseModel.id a CharField with default=uuid4?
 def username_to_uuid(username):
     sha1 = hashlib.sha1(username.encode()).hexdigest()
-    uuid_str = "{}-{}-{}-{}-{}".format(sha1[:8], sha1[8:12], sha1[12:16], sha1[16:20], sha1[20:32])
+    uuid_str = f"{sha1[:8]}-{sha1[8:12]}-{sha1[12:16]}-{sha1[16:20]}-{sha1[20:32]}"
     return str(uuid.UUID(uuid_str))

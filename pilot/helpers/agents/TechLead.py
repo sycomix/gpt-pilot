@@ -30,10 +30,10 @@ class TechLead(Agent):
         if step and not should_execute_step(self.project.args['step'], DEVELOPMENT_PLANNING_STEP):
             step_already_finished(self.project.args, step)
             return step['development_plan']
-        
+
         # DEVELOPMENT PLANNING
         print(colored(f"Starting to create the action plan for development...\n", "green", attrs=['bold']))
-        logger.info(f"Starting to create the action plan for development...")
+        logger.info("Starting to create the action plan for development...")
 
         # TODO add clarifications
         self.development_plan = self.convo_development_plan.send_message('development/plan.prompt',

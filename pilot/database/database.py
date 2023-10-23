@@ -30,12 +30,10 @@ from database.models.files import File
 
 def save_user(user_id, email, password):
     try:
-        user = User.get(User.id == user_id)
-        return user
+        return User.get(User.id == user_id)
     except DoesNotExist:
         try:
-            existing_user = User.get(User.email == email)
-            return existing_user
+            return User.get(User.email == email)
         except DoesNotExist:
             return User.create(id=user_id, email=email, password=password)
 
@@ -51,8 +49,7 @@ def get_user(user_id=None, email=None):
         query.append(User.email == email)
 
     try:
-        user = User.get(reduce(operator.or_, query))
-        return user
+        return User.get(reduce(operator.or_, query))
     except DoesNotExist:
         raise ValueError("No user found with provided id or email")
 
@@ -129,8 +126,7 @@ def save_progress(app_id, step, data):
 
 def get_app(app_id):
     try:
-        app = App.get(App.id == app_id)
-        return app
+        return App.get(App.id == app_id)
     except DoesNotExist:
         raise ValueError(f"No app with id: {app_id}")
 
@@ -243,9 +239,11 @@ def get_development_step_from_hash_id(project, prompt_path, prompt_data, llm_req
                                                        k not in PROMPT_DATA_TO_IGNORE},
         'llm_req_num': llm_req_num
     }
-    development_step = get_db_model_from_hash_id(DevelopmentSteps, project.args['app_id'],
-                                                 project.checkpoints['last_development_step'])
-    return development_step
+    return get_db_model_from_hash_id(
+        DevelopmentSteps,
+        project.args['app_id'],
+        project.checkpoints['last_development_step'],
+    )
 
 
 def save_command_run(project, command, cli_response):
@@ -269,9 +267,11 @@ def get_command_run_from_hash_id(project, command):
         'command': command,
         'command_runs_count': project.command_runs_count
     }
-    command_run = get_db_model_from_hash_id(CommandRuns, project.args['app_id'],
-                                            project.checkpoints['last_command_run'])
-    return command_run
+    return get_db_model_from_hash_id(
+        CommandRuns,
+        project.args['app_id'],
+        project.checkpoints['last_command_run'],
+    )
 
 
 def save_user_input(project, query, user_input):
@@ -294,8 +294,11 @@ def get_user_input_from_hash_id(project, query):
         'query': query,
         'user_inputs_count': project.user_inputs_count
     }
-    user_input = get_db_model_from_hash_id(UserInputs, project.args['app_id'], project.checkpoints['last_user_input'])
-    return user_input
+    return get_db_model_from_hash_id(
+        UserInputs,
+        project.args['app_id'],
+        project.checkpoints['last_user_input'],
+    )
 
 
 def delete_all_subsequent_steps(project):
@@ -436,8 +439,6 @@ def create_database():
 
         cursor.close()
         conn.close()
-    else:
-        pass
 
 
 def tables_exist():
@@ -450,8 +451,6 @@ def tables_exist():
                 database.get_tables().index(table._meta.table_name)
             except ValueError:
                 return False
-    else:
-        pass
     return True
 
 

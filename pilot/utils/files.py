@@ -16,7 +16,7 @@ def setup_workspace(args):
         try:
             save_user_app(args['user_id'], args['app_id'], args['workspace'])
         except Exception as e:
-            print(str(e))
+            print(e)
 
         return args['workspace']
 

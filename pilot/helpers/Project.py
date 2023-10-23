@@ -112,10 +112,12 @@ class Project:
             dict: The directory tree.
         """
         files = {}
-        if with_descriptions and False:
-            files = File.select().where(File.app_id == self.args['app_id'])
-            files = {snapshot.name: snapshot for snapshot in files}
-        return build_directory_tree(self.root_path + '/', ignore=IGNORE_FOLDERS, files=files, add_descriptions=False)
+        return build_directory_tree(
+            f'{self.root_path}/',
+            ignore=IGNORE_FOLDERS,
+            files=files,
+            add_descriptions=False,
+        )
 
     def get_test_directory_tree(self):
         """
@@ -125,7 +127,7 @@ class Project:
             dict: The directory tree of tests.
         """
         # TODO remove hardcoded path
-        return build_directory_tree(self.root_path + '/tests', ignore=IGNORE_FOLDERS)
+        return build_directory_tree(f'{self.root_path}/tests', ignore=IGNORE_FOLDERS)
 
     def get_all_coded_files(self):
         """
@@ -135,7 +137,7 @@ class Project:
             list: A list of coded files.
         """
         files = File.select().where(File.app_id == self.args['app_id'])
-        files = self.get_files([file.path + '/' + file.name for file in files])
+        files = self.get_files([f'{file.path}/{file.name}' for file in files])
         return files
 
     def get_files(self, files):
@@ -195,10 +197,10 @@ class Project:
             file_name = file_name[1:]
 
         if not file_path.startswith('/') and file_path != '':
-            file_path = '/' + file_path
+            file_path = f'/{file_path}'
 
         if file_name != '':
-            file_name = '/' + file_name
+            file_name = f'/{file_name}'
 
         return (file_path, self.root_path + file_path + file_name)
 

@@ -37,10 +37,7 @@ def get_prompt(prompt_name, data=None):
     # Load the template
     template = env.get_template(prompt_name)
 
-    # Render the template with the provided data
-    output = template.render(data)
-
-    return output
+    return template.render(data)
 
 
 def get_tokens_in_messages(messages: List[str]) -> int:
@@ -58,9 +55,9 @@ def num_tokens_from_functions(functions, model=model):
 
     num_tokens = 0
     for function in functions:
-        function_tokens = len(encoding.encode(function['name']))
-        function_tokens += len(encoding.encode(function['description']))
-
+        function_tokens = len(encoding.encode(function['name'])) + len(
+            encoding.encode(function['description'])
+        )
         if 'parameters' in function:
             parameters = function['parameters']
             if 'properties' in parameters:
@@ -68,10 +65,7 @@ def num_tokens_from_functions(functions, model=model):
                     function_tokens += len(encoding.encode(propertiesKey))
                     v = parameters['properties'][propertiesKey]
                     for field in v:
-                        if field == 'type':
-                            function_tokens += 2
-                            function_tokens += len(encoding.encode(v['type']))
-                        elif field == 'description':
+                        if field == 'description':
                             function_tokens += 2
                             function_tokens += len(encoding.encode(v['description']))
                         elif field == 'enum':
@@ -79,8 +73,11 @@ def num_tokens_from_functions(functions, model=model):
                             for o in v['enum']:
                                 function_tokens += 3
                                 function_tokens += len(encoding.encode(o))
-                        # else:
-                        #     print(f"Warning: not supported field {field}")
+                        elif field == 'type':
+                            function_tokens += 2
+                            function_tokens += len(encoding.encode(v['type']))
+                                            # else:
+                                            #     print(f"Warning: not supported field {field}")
                 function_tokens += 11
 
         num_tokens += function_tokens
@@ -135,17 +132,14 @@ def create_gpt_chat_completion(messages: List[dict], req_type, min_tokens=MIN_TO
             gpt_data['function_call'] = {'name': function_calls['definitions'][0]['name']}
 
     try:
-        response = stream_gpt_completion(gpt_data, req_type)
-        return response
+        return stream_gpt_completion(gpt_data, req_type)
     except Exception as e:
         error_message = str(e)
 
-        # Check if the error message is related to token limit
         if "context_length_exceeded" in error_message.lower():
             raise Exception('Too many tokens in the request. Please try to continue the project with some previous development step.')
-        else:
-            print('The request to OpenAI API failed. Here is the error message:')
-            print(e)
+        print('The request to OpenAI API failed. Here is the error message:')
+        print(e)
 
 
 def delete_last_n_lines(n):
@@ -157,8 +151,7 @@ def delete_last_n_lines(n):
 
 
 def count_lines_based_on_width(content, width):
-    lines_required = sum(len(line) // width + 1 for line in content.split('\n'))
-    return lines_required
+    return sum(len(line) // width + 1 for line in content.split('\n'))
 
 
 def retry_on_exception(func):

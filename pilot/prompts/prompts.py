@@ -13,28 +13,6 @@ from logger.logger import logger
 
 def ask_for_app_type():
     return 'Web App'
-    answer = styled_select(
-        "What type of app do you want to build?",
-        choices=common.APP_TYPES
-    )
-
-    if answer is None:
-        print("Exiting application.")
-        exit(0)
-
-    while 'unavailable' in answer:
-        print("Sorry, that option is not available.")
-        answer = styled_select(
-            "What type of app do you want to build?",
-            choices=common.APP_TYPES
-        )
-        if answer is None:
-            print("Exiting application.")
-            exit(0)
-
-    print("You chose: " + answer)
-    logger.info(f"You chose: {answer}")
-    return answer
 
 
 def ask_for_main_app_definition(project):
@@ -60,11 +38,10 @@ def ask_user(project, question, require_some_input=True):
             print("Exiting application.")
             exit(0)
 
-        if answer.strip() == '' and require_some_input:
-            print("No input provided! Please try again.")
-            continue
-        else:
+        if answer.strip() != '' or not require_some_input:
             return answer
+        print("No input provided! Please try again.")
+        continue
 
 
 def get_additional_info_from_openai(project, messages):
@@ -102,9 +79,12 @@ def get_additional_info_from_user(project,  messages, role):
         while True:
             if isinstance(message, dict) and 'text' in message:
                 message = message['text']
-            print(colored(
-                f"Please check this message and say what needs to be changed. If everything is ok just press ENTER",
-                "yellow"))
+            print(
+                colored(
+                    "Please check this message and say what needs to be changed. If everything is ok just press ENTER",
+                    "yellow",
+                )
+            )
             answer = ask_user(project, message, False)
             if answer.lower() == '':
                 break

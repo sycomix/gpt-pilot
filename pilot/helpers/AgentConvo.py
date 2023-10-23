@@ -80,11 +80,11 @@ class AgentConvo:
                 string_response = function_calls['to_message'](message_content)
             elif len(message_content) > 0 and isinstance(message_content[0], dict):
                 string_response = [
-                    f'#{i}\n' + array_of_objects_to_string(d)
+                    f'#{i}\n{array_of_objects_to_string(d)}'
                     for i, d in enumerate(message_content)
                 ]
             else:
-                string_response = ['- ' + r for r in message_content]
+                string_response = [f'- {r}' for r in message_content]
 
             message_content = '\n'.join(string_response)
         # TODO END

@@ -26,11 +26,14 @@ class Developer(Agent):
         self.project.current_step = 'coding'
 
         if self.project.skip_steps is None:
-            self.project.skip_steps = False if ('skip_until_dev_step' in self.project.args and self.project.args['skip_until_dev_step'] == '0') else True
+            self.project.skip_steps = (
+                'skip_until_dev_step' not in self.project.args
+                or self.project.args['skip_until_dev_step'] != '0'
+            )
 
         # DEVELOPMENT
         print(colored(f"Ok, great, now, let's start with the actual development...\n", "green", attrs=['bold']))
-        logger.info(f"Starting to create the actual code...")
+        logger.info("Starting to create the actual code...")
 
         self.implement_task()
 
@@ -66,10 +69,7 @@ class Developer(Agent):
 
             if step['type'] == 'command':
                 # TODO fix this - the problem is in GPT response that sometimes doesn't return the correct JSON structure
-                if isinstance(step['command'], str):
-                    data = step
-                else:
-                    data = step['command']
+                data = step if isinstance(step['command'], str) else step['command']
                 # TODO END
                 additional_message = 'Let\'s start with the step #0:\n\n' if i == 0 else f'So far, steps { ", ".join(f"#{j}" for j in range(i)) } are finished so let\'s do step #{i + 1} now.\n\n'
                 run_command_until_success(data['command'], data['timeout'], convo, additional_message=additional_message)
@@ -84,12 +84,9 @@ class Developer(Agent):
 
             elif step['type'] == 'code_change':
                 # TODO fix this - the problem is in GPT response that sometimes doesn't return the correct JSON structure
-                if 'code_change' not in step:
-                    data = step
-                else:
-                    data = step['code_change']
+                data = step if 'code_change' not in step else step['code_change']
                 self.project.save_file(data)
-                # TODO end
+                        # TODO end
 
             elif step['type'] == 'human_intervention':
                 human_intervention_description = step['human_intervention_description'] + colored('\n\nIf you want to run the app, just type "r" and press ENTER and that will run `' + self.run_command + '`', 'yellow', attrs=['bold']) if self.run_command is not None else step['human_intervention_description']
@@ -108,7 +105,7 @@ class Developer(Agent):
                 elif should_rerun_command == 'YES':
                     cli_response, llm_response = execute_command_and_check_cli_response(test_command['command'], test_command['timeout'], convo)
                     if llm_response == 'NEEDS_DEBUGGING':
-                        print(colored(f'Got incorrect CLI response:', 'red'))
+                        print(colored('Got incorrect CLI response:', 'red'))
                         print(cli_response)
                         print(colored('-------------------', 'red'))
                     if llm_response == 'DONE':
@@ -173,59 +170,6 @@ class Developer(Agent):
             "os_specific_technologies": [], "newly_installed_technologies": [], "app_data": generate_app_data(self.project.args)
         })
         return
-        # ENVIRONMENT SETUP
-        print(colored(f"Setting up the environment...\n", "green"))
-        logger.info(f"Setting up the environment...")
-
-        os_info = get_os_info()
-        os_specific_technologies = self.convo_os_specific_tech.send_message('development/env_setup/specs.prompt',
-            {
-                "name": self.project.args['name'],
-                "app_type": self.project.args['app_type'],
-                "os_info": os_info,
-                "technologies": self.project.architecture
-            }, FILTER_OS_TECHNOLOGIES)
-
-        for technology in os_specific_technologies:
-            # TODO move the functions definitions to function_calls.py
-            cli_response, llm_response = self.convo_os_specific_tech.send_message('development/env_setup/install_next_technology.prompt',
-                { 'technology': technology}, {
-                    'definitions': [{
-                        'name': 'execute_command',
-                        'description': f'Executes a command that should check if {technology} is installed on the machine. ',
-                        'parameters': {
-                            'type': 'object',
-                            'properties': {
-                                'command': {
-                                    'type': 'string',
-                                    'description': f'Command that needs to be executed to check if {technology} is installed on the machine.',
-                                },
-                                'timeout': {
-                                    'type': 'number',
-                                    'description': 'Timeout in seconds for the approcimate time this command takes to finish.',
-                                }
-                            },
-                            'required': ['command', 'timeout'],
-                        },
-                    }],
-                    'functions': {
-                        'execute_command': execute_command_and_check_cli_response
-                    },
-                    'send_convo': True
-                })
-
-            if llm_response != 'DONE':
-                installation_commands = self.convo_os_specific_tech.send_message('development/env_setup/unsuccessful_installation.prompt',
-                    { 'technology': technology }, EXECUTE_COMMANDS)
-                if installation_commands is not None:
-                    for cmd in installation_commands:
-                        run_command_until_success(cmd['command'], cmd['timeout'], self.convo_os_specific_tech)
-
-        logger.info('The entire tech stack needed is installed and ready to be used.')
-
-        save_progress(self.project.args['app_id'], self.project.current_step, {
-            "os_specific_technologies": os_specific_technologies, "newly_installed_technologies": [], "app_data": generate_app_data(self.project.args)
-        })
 
         # ENVIRONMENT SETUP END
 
@@ -261,7 +205,3 @@ class Developer(Agent):
         if type == 'COMMAND':
             for cmd in step_details:
                 run_command_until_success(cmd['command'], cmd['timeout'], convo)
-        # elif type == 'CODE_CHANGE':
-        #     code_changes_details = get_step_code_changes()
-            # TODO: give to code monkey for implementation
-        pass

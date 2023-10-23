@@ -10,7 +10,7 @@ class CodeMonkey(Agent):
         self.developer = developer
 
     def implement_code_changes(self, convo, code_changes_description, step_index=0):
-        if convo == None:
+        if convo is None:
             convo = AgentConvo(self)
 
         files_needed = convo.send_message('development/task/request_files_for_code_changes.prompt', {

@@ -29,7 +29,7 @@ class Architect(Agent):
 
         # ARCHITECTURE
         print(colored(f"Planning project architecture...\n", "green", attrs=['bold']))
-        logger.info(f"Planning project architecture...")
+        logger.info("Planning project architecture...")
 
         self.convo_architecture = AgentConvo(self)
         architecture = self.convo_architecture.send_message('architecture/technologies.prompt',
